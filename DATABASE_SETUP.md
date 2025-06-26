@@ -39,8 +39,8 @@ npm install
 
 ### Step 3: Test API Endpoints
 Your API will be available at:
-- `https://your-site.netlify.app/.netlify/functions/participants`
-- `https://your-site.netlify.app/.netlify/functions/entries`
+- `https://tracking8k.netlify.app/.netlify/functions/participants`
+- `https://tracking8k.netlify.app/.netlify/functions/entries`
 
 ## Frontend Integration
 
