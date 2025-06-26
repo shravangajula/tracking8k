@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>30-Day Walking Challenge - Simple Entry</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1><i class="fas fa-walking"></i> 30-Day Walking Challenge</h1>
+            <p class="subtitle">July 1st - July 31st, 2024 • Goal: 8,000+ steps daily</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Participant Registration Section -->
+            <div id="registration-section" class="form-section">
+                <div class="form-card">
+                    <h2><i class="fas fa-user-plus"></i> Join the Challenge</h2>
+                    <p class="form-description">Enter your name to start tracking your daily steps!</p>
+                    
+                    <form id="registration-form" class="simple-form">
+                        <div class="form-group">
+                            <label for="participant-name">Your Name:</label>
+                            <input type="text" id="participant-name" required placeholder="Enter your full name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="daily-goal">Daily Goal (steps):</label>
+                            <input type="number" id="daily-goal" value="8000" min="1000" max="50000">
+                            <small>Default is 8,000 steps. You can change this anytime.</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-large">
+                            <i class="fas fa-play"></i> Start Challenge
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Daily Entry Section -->
+            <div id="entry-section" class="form-section hidden">
+                <div class="form-card">
+                    <div class="participant-info">
+                        <h2><i class="fas fa-user"></i> Welcome, <span id="welcome-name">Participant</span>!</h2>
+                        <p class="goal-info">Your daily goal: <span id="current-goal">8,000</span> steps</p>
+                        <button id="change-goal-btn" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-edit"></i> Change Goal
+                        </button>
+                    </div>
+                    
+                    <form id="daily-entry-form" class="simple-form">
+                        <div class="form-group">
+                            <label for="entry-date">Date:</label>
+                            <input type="date" id="entry-date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="step-count">Today's Steps:</label>
+                            <input type="number" id="step-count" min="0" max="100000" required placeholder="Enter your step count">
+                            <small>How many steps did you walk today?</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="entry-notes">Notes (Optional):</label>
+                            <textarea id="entry-notes" rows="3" placeholder="Any notes about your walk today..."></textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-large">
+                                <i class="fas fa-save"></i> Save Entry
+                            </button>
+                            <button type="button" id="view-progress-btn" class="btn btn-secondary">
+                                <i class="fas fa-chart-line"></i> View Progress
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div id="progress-section" class="form-section hidden">
+                <div class="form-card">
+                    <div class="progress-header">
+                        <h2><i class="fas fa-chart-line"></i> Your Progress</h2>
+                        <div class="progress-actions">
+                            <button id="back-to-entry-btn" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Entry
+                            </button>
+                            <button id="debug-btn" class="btn btn-sm btn-secondary" style="margin-left: 10px;">
+                                <i class="fas fa-bug"></i> Debug
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-summary">
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-value" id="total-days">0</div>
+                                <div class="summary-label">Days Tracked</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value" id="goal-days">0</div>
+                                <div class="summary-label">Goal Days</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value" id="avg-steps">0</div>
+                                <div class="summary-label">Avg Steps</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value" id="success-rate">0%</div>
+                                <div class="summary-label">Success Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Leaderboard Section -->
+                    <div class="leaderboard-section">
+                        <h3><i class="fas fa-trophy"></i> Challenge Leaderboard</h3>
+                        <p class="leaderboard-description">See all participants across all devices! When you register, you'll appear for everyone, and you can see all other participants too.</p>
+                        <div id="leaderboard-list" class="leaderboard-list">
+                            <!-- Leaderboard will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <div class="entries-list" id="entries-list">
+                        <!-- Entries will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Message -->
+        <div id="success-message" class="success-message hidden">
+            <div class="success-content">
+                <i class="fas fa-check-circle"></i>
+                <h3>Entry Saved Successfully!</h3>
+                <p id="success-text">Your step count has been recorded.</p>
+                <button id="continue-btn" class="btn btn-primary">Continue</button>
+            </div>
+        </div>
+
+        <!-- Goal Change Modal -->
+        <div id="goal-modal" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Change Daily Goal</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <form id="goal-form">
+                    <div class="form-group">
+                        <label for="new-goal">New Daily Goal (steps):</label>
+                        <input type="number" id="new-goal" min="1000" max="50000" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Update Goal</button>
+                        <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Admin Panel (Hidden by default) -->
+        <div id="admin-panel" class="admin-panel hidden">
+            <div class="admin-content">
+                <h3><i class="fas fa-cog"></i> Admin Panel</h3>
+                <p class="admin-description">Organizer controls for managing the challenge</p>
+                
+                <div class="admin-actions">
+                    <button id="reset-all-data-btn" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Reset All Data (Fresh Start)
+                    </button>
+                    <button id="reset-entries-only-btn" class="btn btn-warning">
+                        <i class="fas fa-eraser"></i> Clear All Entries Only
+                    </button>
+                    <button id="export-data-btn" class="btn btn-secondary">
+                        <i class="fas fa-download"></i> Export Current Data
+                    </button>
+                    <button id="hide-admin-btn" class="btn btn-secondary">
+                        <i class="fas fa-eye-slash"></i> Hide Admin Panel
+                    </button>
+                </div>
+                
+                <div class="admin-info">
+                    <h4>Current Status:</h4>
+                    <div id="admin-status">
+                        <!-- Status will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Access Trigger (Hidden) -->
+        <div id="admin-trigger" class="admin-trigger">
+            <div class="admin-trigger-area"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 

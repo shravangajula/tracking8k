@@ -1,0 +1,17 @@
+{
+  "name": "walking-challenge-functions",
+  "version": "1.0.0",
+  "description": "Netlify Functions for Walking Challenge App",
+  "main": "index.js",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+} 
