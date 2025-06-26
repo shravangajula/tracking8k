@@ -47,7 +47,13 @@ See [BACKEND_README.md](BACKEND_README.md) for complete API documentation.
 3. Run the SQL commands from `database-setup.sql`
 4. Copy your connection string
 
-### 2. Deploy to Netlify
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Deploy to Netlify
 
 1. **Fork/Clone this repository**
 2. **Connect to Netlify**:
@@ -55,7 +61,7 @@ See [BACKEND_README.md](BACKEND_README.md) for complete API documentation.
    - Click "New site from Git"
    - Connect your GitHub repository
    - Set build settings:
-     - Build command: (leave empty)
+     - Build command: `npm install`
      - Publish directory: `.`
 
 3. **Set Environment Variables**:
@@ -64,7 +70,7 @@ See [BACKEND_README.md](BACKEND_README.md) for complete API documentation.
 
 4. **Deploy**: Netlify will automatically deploy your site
 
-### 3. Test the API
+### 4. Test the API
 
 Use the included test script to verify everything works:
 

@@ -1,0 +1,34 @@
+{
+  "name": "walking-challenge-app",
+  "version": "1.0.0",
+  "description": "30-Day Walking Challenge App with Netlify Functions and Neon PostgreSQL",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step required'",
+    "test": "node test-api.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "@netlify/plugin-functions-install-core": "^5.0.0"
+  },
+  "keywords": [
+    "walking",
+    "challenge",
+    "netlify",
+    "functions",
+    "postgresql",
+    "neon",
+    "serverless"
+  ],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 

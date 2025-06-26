@@ -221,6 +221,22 @@ Set these environment variables in your Netlify dashboard:
 
 - `DATABASE_URL`: Your Neon PostgreSQL connection string
 
+## Dependencies
+
+The project uses a top-level `package.json` to manage all dependencies:
+
+```bash
+npm install
+```
+
+Key dependencies:
+- `@neondatabase/serverless`: Neon PostgreSQL client
+- `cors`: Cross-origin resource sharing
+- `helmet`: Security middleware
+- `express-rate-limit`: Rate limiting
+
+The `@netlify/plugin-functions-install-core` plugin automatically installs dependencies for Netlify Functions.
+
 ## Deployment
 
 1. **Set up Neon Database:**
