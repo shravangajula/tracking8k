@@ -76,7 +76,8 @@ class SimpleWalkingChallenge {
                 body: JSON.stringify({
                     name: participant.name,
                     goal: participant.goal,
-                    deviceId: participant.deviceId
+                    deviceId: participant.deviceId,
+                    email: participant.email
                 })
             });
             
@@ -211,10 +212,15 @@ class SimpleWalkingChallenge {
 
     async registerParticipant() {
         const name = document.getElementById('participant-name').value.trim();
+        const email = document.getElementById('participant-email').value.trim();
         const goal = parseInt(document.getElementById('daily-goal').value) || this.defaultGoal;
 
         if (!name) {
             alert('Please enter your name');
+            return;
+        }
+        if (!email) {
+            alert('Please enter your email address');
             return;
         }
 
@@ -232,6 +238,7 @@ class SimpleWalkingChallenge {
         this.participant = {
             id: Date.now(), // Temporary ID, will be replaced by database
             name: name,
+            email: email,
             goal: goal,
             joinDate: this.formatDate(new Date()),
             deviceId: deviceId

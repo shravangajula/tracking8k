@@ -60,16 +60,16 @@ exports.handler = async (event, context) => {
             
           case 'POST':
             // Add new participant
-            const { name, goal, deviceId: postDeviceId } = JSON.parse(body);
+            const { name, goal, deviceId: postDeviceId, email } = JSON.parse(body);
             
             // Validate input
-            if (!name || !postDeviceId) {
+            if (!name || !postDeviceId || !email) {
               resolve({
                 statusCode: 400,
                 headers: {
                   'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ error: 'Name and deviceId are required' })
+                body: JSON.stringify({ error: 'Name, email, and deviceId are required' })
               });
               return;
             }
@@ -93,8 +93,8 @@ exports.handler = async (event, context) => {
             }
             
             const newParticipant = await sql`
-              INSERT INTO participants (name, goal, device_id, created_at)
-              VALUES (${name}, ${goal || 8000}, ${postDeviceId}, NOW())
+              INSERT INTO participants (name, goal, device_id, email, created_at)
+              VALUES (${name}, ${goal || 8000}, ${postDeviceId}, ${email}, NOW())
               RETURNING *
             `;
             
