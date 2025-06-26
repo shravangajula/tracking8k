@@ -14,9 +14,6 @@
     "helmet": "^7.1.0",
     "express-rate-limit": "^7.1.5"
   },
-  "devDependencies": {
-    "@netlify/plugin-functions-install-core": "^5.0.0"
-  },
   "keywords": [
     "walking",
     "challenge",
