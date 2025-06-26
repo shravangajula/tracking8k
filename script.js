@@ -391,12 +391,35 @@ All Participants: ${this.allParticipants.map(p => p.name).join(', ')}
     async updateProgressDisplay() {
         if (!this.participant) return;
 
-        const stats = this.getParticipantStats();
+        // Get detailed stats from API
+        const detailedStats = await this.getParticipantDetailedStats();
         
-        document.getElementById('total-days').textContent = stats.totalDays;
-        document.getElementById('goal-days').textContent = stats.goalDays;
-        document.getElementById('avg-steps').textContent = stats.avgSteps.toLocaleString();
-        document.getElementById('success-rate').textContent = `${stats.successRate}%`;
+        if (detailedStats) {
+            const summary = detailedStats.summary;
+            
+            document.getElementById('total-days').textContent = summary.days_logged;
+            document.getElementById('goal-days').textContent = summary.goal_days;
+            document.getElementById('avg-steps').textContent = Math.round(summary.avg_daily_steps).toLocaleString();
+            document.getElementById('success-rate').textContent = `${summary.goal_percentage}%`;
+            
+            // Add additional stats if elements exist
+            const totalStepsElement = document.getElementById('total-steps');
+            const currentStreakElement = document.getElementById('current-streak');
+            const longestStreakElement = document.getElementById('longest-streak');
+            const overallProgressElement = document.getElementById('overall-progress');
+            
+            if (totalStepsElement) totalStepsElement.textContent = summary.total_steps.toLocaleString();
+            if (currentStreakElement) currentStreakElement.textContent = summary.current_streak;
+            if (longestStreakElement) longestStreakElement.textContent = summary.longest_streak;
+            if (overallProgressElement) overallProgressElement.textContent = `${summary.overall_progress}%`;
+        } else {
+            // Fallback to local calculation
+            const stats = this.getParticipantStats();
+            document.getElementById('total-days').textContent = stats.totalDays;
+            document.getElementById('goal-days').textContent = stats.goalDays;
+            document.getElementById('avg-steps').textContent = stats.avgSteps.toLocaleString();
+            document.getElementById('success-rate').textContent = `${stats.successRate}%`;
+        }
 
         await this.updateLeaderboard();
         this.updateEntriesList();
@@ -414,12 +437,12 @@ All Participants: ${this.allParticipants.map(p => p.name).join(', ')}
             return;
         }
 
-        // Sort by success rate (primary) and average steps (secondary)
+        // Sort by total steps (primary) and success rate (secondary)
         leaderboardData.sort((a, b) => {
-            if (b.successRate !== a.successRate) {
-                return b.successRate - a.successRate;
+            if (b.totalSteps !== a.totalSteps) {
+                return b.totalSteps - a.totalSteps;
             }
-            return b.avgSteps - a.avgSteps;
+            return b.successRate - a.successRate;
         });
 
         leaderboardData.forEach((participant, index) => {
@@ -446,6 +469,10 @@ All Participants: ${this.allParticipants.map(p => p.name).join(', ')}
                     <div class="leaderboard-name ${isCurrentUser ? 'current-user' : ''}">${participant.name} ${isCurrentUser ? '(You)' : ''}</div>
                     <div class="leaderboard-stats">
                         <div class="leaderboard-stat">
+                            <i class="fas fa-walking"></i>
+                            <span>${participant.totalSteps.toLocaleString()} total</span>
+                        </div>
+                        <div class="leaderboard-stat">
                             <i class="fas fa-calendar-check"></i>
                             <span>${participant.totalDays} days</span>
                         </div>
@@ -454,12 +481,15 @@ All Participants: ${this.allParticipants.map(p => p.name).join(', ')}
                             <span>${participant.goalDays} goals</span>
                         </div>
                         <div class="leaderboard-stat">
-                            <i class="fas fa-walking"></i>
-                            <span>${participant.avgSteps.toLocaleString()} avg</span>
+                            <i class="fas fa-fire"></i>
+                            <span>${participant.currentStreak} streak</span>
                         </div>
                     </div>
                 </div>
-                <div class="leaderboard-score ${scoreClass}">${participant.successRate}%</div>
+                <div class="leaderboard-scores">
+                    <div class="leaderboard-score ${scoreClass}">${participant.successRate}%</div>
+                    <div class="leaderboard-progress">${participant.overallProgress}%</div>
+                </div>
             `;
 
             leaderboardList.appendChild(leaderboardItem);
@@ -467,57 +497,32 @@ All Participants: ${this.allParticipants.map(p => p.name).join(', ')}
     }
 
     async getAllParticipantsStats() {
-        const stats = [];
-        
-        // Load all participants from database
-        const allParticipants = await this.loadParticipantsFromDatabase();
-        
-        if (allParticipants.length === 0) {
-            return stats;
-        }
-        
-        // For each participant, we need to get their entries
-        // Note: In a real app, you'd want to optimize this with a single query
-        for (const participant of allParticipants) {
-            let participantEntries = [];
+        try {
+            // Use the new leaderboard API endpoint
+            const response = await fetch(`${this.apiBase}/leaderboard?challengeStart=2024-07-01&challengeEnd=2024-07-31`);
             
-            if (this.participant && participant.deviceId === this.participant.deviceId) {
-                // This is the current user - use their loaded entries
-                participantEntries = this.entries;
-            } else {
-                // For other participants, we'd need to load their entries
-                // For now, we'll show them with 0 entries (you can enhance this later)
-                participantEntries = [];
-            }
-
-            if (participantEntries.length === 0) {
-                stats.push({
+            if (response.ok) {
+                const data = await response.json();
+                return data.leaderboard.map(participant => ({
                     id: participant.id,
                     name: participant.name,
-                    totalDays: 0,
-                    goalDays: 0,
-                    avgSteps: 0,
-                    successRate: 0
-                });
-                continue;
+                    totalDays: participant.days_logged,
+                    goalDays: participant.goal_days,
+                    avgSteps: Math.round(participant.avg_daily_steps),
+                    successRate: participant.goal_percentage,
+                    totalSteps: participant.total_steps,
+                    currentStreak: participant.current_streak,
+                    bestDay: participant.best_day,
+                    overallProgress: participant.overall_progress
+                }));
+            } else {
+                console.error('Failed to load leaderboard:', response.statusText);
+                return [];
             }
-
-            const totalSteps = participantEntries.reduce((sum, entry) => sum + entry.steps, 0);
-            const goalDays = participantEntries.filter(entry => entry.steps >= participant.goal).length;
-            const avgSteps = Math.round(totalSteps / participantEntries.length);
-            const successRate = Math.round((goalDays / participantEntries.length) * 100);
-
-            stats.push({
-                id: participant.id,
-                name: participant.name,
-                totalDays: participantEntries.length,
-                goalDays: goalDays,
-                avgSteps: avgSteps,
-                successRate: successRate
-            });
+        } catch (error) {
+            console.error('Error loading leaderboard:', error);
+            return [];
         }
-
-        return stats;
     }
 
     updateEntriesList() {
@@ -762,6 +767,26 @@ All Participants: ${this.allParticipants.map(p => p.name).join(', ')}
         URL.revokeObjectURL(url);
         
         alert('Data exported successfully!');
+    }
+
+    async getParticipantDetailedStats() {
+        if (!this.participant) {
+            return null;
+        }
+
+        try {
+            const response = await fetch(`${this.apiBase}/stats?deviceId=${this.participant.deviceId}&challengeStart=2024-07-01&challengeEnd=2024-07-31`);
+            
+            if (response.ok) {
+                return await response.json();
+            } else {
+                console.error('Failed to load detailed stats:', response.statusText);
+                return null;
+            }
+        } catch (error) {
+            console.error('Error loading detailed stats:', error);
+            return null;
+        }
     }
 }
 

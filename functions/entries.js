@@ -13,10 +13,26 @@ exports.handler = async (event, context) => {
         
         switch (httpMethod) {
           case 'GET':
-            // Get entries for a specific participant
-            const { deviceId } = queryStringParameters || {};
+            const { deviceId, all } = queryStringParameters || {};
             
-            if (deviceId) {
+            if (all === 'true') {
+              // Get all entries for leaderboard (without device ID filter)
+              const allEntries = await sql`
+                SELECT e.*, p.name, p.goal, p.device_id 
+                FROM entries e
+                JOIN participants p ON e.participant_id = p.id
+                ORDER BY e.date DESC, p.name ASC
+              `;
+              
+              resolve({
+                statusCode: 200,
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(allEntries)
+              });
+            } else if (deviceId) {
+              // Get entries for a specific participant
               const entries = await sql`
                 SELECT e.* FROM entries e
                 JOIN participants p ON e.participant_id = p.id
@@ -34,7 +50,7 @@ exports.handler = async (event, context) => {
             } else {
               resolve({
                 statusCode: 400,
-                body: JSON.stringify({ error: 'deviceId parameter required' })
+                body: JSON.stringify({ error: 'deviceId parameter required or use all=true for all entries' })
               });
             }
             break;
@@ -42,6 +58,30 @@ exports.handler = async (event, context) => {
           case 'POST':
             // Add new entry
             const { participantId, date, steps, notes } = JSON.parse(body);
+            
+            // Validate input
+            if (!participantId || !date || steps === undefined || steps === null) {
+              resolve({
+                statusCode: 400,
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ error: 'participantId, date, and steps are required' })
+              });
+              return;
+            }
+            
+            // Validate steps is a positive number
+            if (steps < 0) {
+              resolve({
+                statusCode: 400,
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ error: 'Steps must be a positive number' })
+              });
+              return;
+            }
             
             // Check if entry already exists for this date and participant
             const existingEntry = await sql`
@@ -53,7 +93,7 @@ exports.handler = async (event, context) => {
               // Update existing entry
               const updatedEntry = await sql`
                 UPDATE entries 
-                SET steps = ${steps}, notes = ${notes}, updated_at = NOW()
+                SET steps = ${steps}, notes = ${notes || ''}, updated_at = NOW()
                 WHERE participant_id = ${participantId} AND date = ${date}
                 RETURNING *
               `;
@@ -69,7 +109,7 @@ exports.handler = async (event, context) => {
               // Create new entry
               const newEntry = await sql`
                 INSERT INTO entries (participant_id, date, steps, notes, created_at)
-                VALUES (${participantId}, ${date}, ${steps}, ${notes}, NOW())
+                VALUES (${participantId}, ${date}, ${steps}, ${notes || ''}, NOW())
                 RETURNING *
               `;
               
@@ -83,6 +123,47 @@ exports.handler = async (event, context) => {
             }
             break;
             
+          case 'DELETE':
+            // Delete entry
+            const { entryId } = queryStringParameters || {};
+            
+            if (!entryId) {
+              resolve({
+                statusCode: 400,
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ error: 'entryId parameter required' })
+              });
+              return;
+            }
+            
+            const deletedEntry = await sql`
+              DELETE FROM entries 
+              WHERE id = ${entryId}
+              RETURNING *
+            `;
+            
+            if (deletedEntry.length === 0) {
+              resolve({
+                statusCode: 404,
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ error: 'Entry not found' })
+              });
+              return;
+            }
+            
+            resolve({
+              statusCode: 200,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ message: 'Entry deleted successfully' })
+            });
+            break;
+            
           default:
             resolve({
               statusCode: 405,
@@ -93,7 +174,7 @@ exports.handler = async (event, context) => {
         console.error('Database error:', error);
         resolve({
           statusCode: 500,
-          body: JSON.stringify({ error: 'Internal server error' })
+          body: JSON.stringify({ error: 'Internal server error', details: error.message })
         });
       }
     });
