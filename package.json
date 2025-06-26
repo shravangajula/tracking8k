@@ -4,7 +4,7 @@
   "description": "30-Day Walking Challenge App with Netlify Functions and Neon PostgreSQL",
   "main": "index.html",
   "scripts": {
-    "dev": "netlify dev",
+    "dev": "node script.js",
     "build": "echo 'No build step required'",
     "test": "node test-api.js"
   },
